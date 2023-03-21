@@ -1,0 +1,46 @@
+{
+  
+"margin-top": 800,
+  
+"margin-bottom": 800,
+  
+"margin-left": 1500,
+  
+"margin-right": 1500,
+  
+"bg-color": "#2b292a",
+  
+"segment-width": 790,
+  
+"segment-height": 1085,
+  
+"segment-rect-offset-x": 75,
+  
+"segment-rect-offset-y": 90,
+  
+"segment-rect-width": 635,
+  
+"segment-rect-height": 895,
+  
+"segment-rect-bg-color": "#231f21",
+  
+"segment-circle-start-x": 138,
+  
+"segment-circle-start-y": 160,
+
+"segment-circle-offset-x": 129,
+  
+"segment-circle-offset-y": 128,
+
+"segment-circle-radius": 30,
+
+"segment-circle-on-radius": 66,
+
+"segment-circle-on-bg-color": "#fdf0ce",
+
+"segment-circle-off-bg-color": "#404042",
+
+"total-rows": 8,
+
+"total-cols": 26
+}

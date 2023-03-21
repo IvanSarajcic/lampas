@@ -1,0 +1,12 @@
+{
+  "segment-img": "img/segment_95.png",
+  "segment-width": 95,
+  "segment-height": 130,
+  "lamp-img": "img/pixel_95.png",
+  "lamp-width": 9,
+  "lamp-height": 8,
+  "lamps-xcords": [13, 28, 43, 59, 74],
+  "lamps-ycords": [15, 31, 46, 62, 77, 92, 108],
+  "total-rows": 8,
+  "total-cols": 26
+}

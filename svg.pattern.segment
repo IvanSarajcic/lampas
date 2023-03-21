@@ -1,0 +1,4 @@
+<g>
+    <rect class="segment" x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" />
+{{pixels}}
+</g>

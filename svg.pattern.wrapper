@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="{{w}}px" height="{{h}}px" version="1.1" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 {{w}} {{h}}">
+ <defs>
+  <style type="text/css">
+  <![CDATA[
+  .background {fill:{{bg}}}
+  .segment {fill:{{segment-bg}}}
+  .pixel-off {fill:{{pixel-off-bg}}}
+  .pixel-on {fill:{{pixel-on-bg}}}
+  ]]>
+  </style>
+ </defs>
+ <g>
+  <rect class="background" width="{{w}}" height="{{h}}" />
+{{segments}}
+ </g>
+</svg>
