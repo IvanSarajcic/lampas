@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Lampaš živi</title>
+    <title>Lampaš sa stadiona JNA</title>
     <link rel="stylesheet" href="css/lampas.css" type="text/css" media="screen">
 </head>
 <body>
