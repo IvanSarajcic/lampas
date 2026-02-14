@@ -17,5 +17,6 @@
   <g transform="{{content-transform}}">
 {{segments}}
   </g>
+{{watermark}}
  </g>
 </svg>

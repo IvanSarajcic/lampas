@@ -43,7 +43,7 @@ body {
     color: #fff3a7;
     background-color: #404545;
     border: none;
-    padding: 0.4rem 1rem;
+    padding: 0.4rem 2rem 0.4rem 1rem;
     cursor: pointer;
     margin: 0.5rem;
     box-sizing: border-box;
@@ -167,7 +167,10 @@ body {
         text-decoration: none;
         font-size: 0.5rem;
         &:hover { background-color: #575d5d; }
-        &.disabled { opacity: 0.4; pointer-events: none; }
+        &.disabled { opacity: 0.3; pointer-events: none; }
+        svg {
+            background-color: transparent;
+        }
     }
 }
 .log {

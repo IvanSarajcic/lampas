@@ -70,7 +70,7 @@ body {
   color: #fff3a7;
   background-color: #404545;
   border: none;
-  padding: 0.4rem 1rem;
+  padding: 0.4rem 2rem 0.4rem 1rem;
   cursor: pointer;
   margin: 0.5rem;
   box-sizing: border-box;
@@ -199,8 +199,11 @@ body {
   background-color: #575d5d;
 }
 .actions a.disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   pointer-events: none;
+}
+.actions a svg {
+  background-color: transparent;
 }
 
 .log {

@@ -480,6 +480,41 @@
     });
 
     // ----- Share as PNG -----
+    // Convert an image URL to a data URL via canvas
+    function toDataUrl(src, callback) {
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+            var c = document.createElement('canvas');
+            c.width = img.naturalWidth;
+            c.height = img.naturalHeight;
+            c.getContext('2d').drawImage(img, 0, 0);
+            callback(c.toDataURL('image/png'));
+        };
+        img.onerror = function() { callback(null); };
+        img.src = src;
+    }
+
+    // Preload misloe.svg as text for watermark embedding
+    var misloeData = null;
+    fetch('img/misloe.svg')
+        .then(function(r) { return r.text(); })
+        .then(function(svgText) {
+            // Extract inner content and inline styles
+            var m = svgText.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
+            if (m) {
+                var inner = m[1];
+                inner = inner.replace(/<style[^>]*>[\s\S]*?<\/style>/g, '');
+                inner = inner.replace(/class="st0"/g, 'style="fill-rule:evenodd;clip-rule:evenodd;fill:#AEB0B2"');
+                inner = inner.replace(/class="st1"/g, 'style="fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF"');
+                inner = inner.replace(/class="st2"/g, 'style="fill:#FFF200"');
+                inner = inner.replace(/class="st3"/g, 'style="fill-rule:evenodd;clip-rule:evenodd"');
+                inner = inner.replace(/class="st4"/g, 'style="fill:#FFFFFF"');
+                misloeData = inner;
+            }
+        })
+        .catch(function() {});
+
     function svgToPng(callback) {
         var clone = svgEl.cloneNode(true);
         // Remove cursor dots and row-active styling for clean export
@@ -488,13 +523,70 @@
         var activeRows = clone.querySelectorAll('.row-active');
         for (var i = 0; i < activeRows.length; i++) activeRows[i].removeAttribute('class');
 
-        var svgData = new XMLSerializer().serializeToString(clone);
-        var svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
-        var url = URL.createObjectURL(svgBlob);
-
         var vb = svgEl.getAttribute('viewBox').split(' ');
         var w = parseFloat(vb[2]);
         var h = parseFloat(vb[3]);
+
+        // Add watermark if available
+        if (misloeData) {
+            var logoSize = Math.round(w * 0.06);
+            var logoScale = (logoSize / 190).toFixed(6);
+            var logoX = Math.round(w - logoSize - w * 0.015);
+            var logoY = Math.round(h - logoSize - h * 0.015);
+            var textSize = Math.max(5, Math.round(w * 0.012));
+            var textX = logoX - Math.round(w * 0.005);
+            var textY = Math.round(logoY + logoSize / 2 + textSize / 3);
+
+            var wmNs = 'http://www.w3.org/2000/svg';
+            var wmGroup = document.createElementNS(wmNs, 'g');
+            wmGroup.setAttribute('opacity', '0.85');
+            var padX = Math.round(textSize * 0.4);
+            var padY = Math.round(textSize * 0.3);
+            var estTextW = Math.round(textSize * 0.6 * 26); // approx width of 26 chars
+            var rectX = textX - estTextW - padX;
+            var rectY = textY - textSize + padY;
+            var rectW = estTextW + padX * 2;
+            var rectH = textSize + padY * 2;
+
+            // Build watermark SVG as string and parse it properly
+            var wmSvgStr = '<svg xmlns="http://www.w3.org/2000/svg">' +
+                '<g opacity="0.85">' +
+                '<g transform="translate(' + logoX + ',' + logoY + ') scale(' + logoScale + ')">' +
+                misloeData +
+                '</g>' +
+                '<rect x="' + rectX + '" y="' + rectY + '" width="' + rectW + '" height="' + rectH + '" rx="' + Math.round(textSize * 0.3) + '" fill="#000000" opacity="0.5"/>' +
+                '<text x="' + textX + '" y="' + textY + '" font-family="sans-serif" font-size="' + textSize + '" fill="#ffffff" text-anchor="end" opacity="0.8">partizan-histerical/lampas</text>' +
+                '</g></svg>';
+            var parser = new DOMParser();
+            var wmDoc = parser.parseFromString(wmSvgStr, 'image/svg+xml');
+            var wmParsed = wmDoc.documentElement.firstChild;
+            clone.appendChild(clone.ownerDocument.importNode(wmParsed, true));
+        }
+
+        // Check if there's a background photo that needs data URL conversion
+        var bgPhoto = clone.querySelector('.bg-photo');
+        if (bgPhoto) {
+            var bgHref = bgPhoto.getAttribute('href') || bgPhoto.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+            if (bgHref && bgHref.indexOf('data:') !== 0) {
+                // Convert relative URL to data URL so it works in blob context
+                toDataUrl(bgHref, function(dataUrl) {
+                    if (dataUrl) {
+                        bgPhoto.setAttribute('href', dataUrl);
+                        bgPhoto.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
+                    }
+                    renderSvgToCanvas(clone, w, h, callback, null);
+                });
+                return;
+            }
+        }
+
+        renderSvgToCanvas(clone, w, h, callback, S['bg-color']);
+    }
+
+    function renderSvgToCanvas(svgClone, w, h, callback, fillBg) {
+        var svgData = new XMLSerializer().serializeToString(svgClone);
+        var svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+        var url = URL.createObjectURL(svgBlob);
 
         var img = new Image();
         img.onload = function() {
@@ -502,6 +594,11 @@
             canvas.width = w;
             canvas.height = h;
             var ctx = canvas.getContext('2d');
+            // Fill solid background color first if needed
+            if (fillBg) {
+                ctx.fillStyle = fillBg;
+                ctx.fillRect(0, 0, w, h);
+            }
             ctx.drawImage(img, 0, 0, w, h);
             URL.revokeObjectURL(url);
             canvas.toBlob(function(blob) {
@@ -519,6 +616,18 @@
     });
 
     document.getElementById('btn-submit').addEventListener('click', function() {
+        // Log submission
+        try {
+            fetch('log.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text.slice(),
+                    bg: currentBg ? currentBg.id : 'none'
+                })
+            }).catch(function() {});
+        } catch(e) {}
+
         svgToPng(function(blob) {
             var file = new File([blob], 'lampas.png', {type: 'image/png'});
             if (navigator.share && navigator.canShare && navigator.canShare({files: [file]})) {

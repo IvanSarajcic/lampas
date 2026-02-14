@@ -95,7 +95,8 @@ class LampasSvg {
             $svgW = $bgW > 0 ? $bgW : $gridW;
             $svgH = $bgH > 0 ? $bgH : $gridH;
 
-            $bgImage = '  <image width="' . $svgW . '" height="' . $svgH . '" href="data:' . $mime . ';base64,' . $b64 . '" />';
+            $this->bgDataUrl = 'data:' . $mime . ';base64,' . $b64;
+            $bgImage = '  <image width="' . $svgW . '" height="' . $svgH . '" href="' . $this->bgDataUrl . '" />';
 
             // Auto-fit content to photo when no custom transform is set
             if ($autoFitGrid) {
@@ -111,6 +112,64 @@ class LampasSvg {
             $svgH = $gridH;
         }
 
+        // Build watermark: misloe.svg + small credit text in bottom-right
+        $watermark = '';
+        $misloeFile = __DIR__ . '/img/misloe.svg';
+        if (file_exists($misloeFile)) {
+            $misloeSvg = file_get_contents($misloeFile);
+            // Extract inner content between <svg ...> and </svg>
+            $innerStart = strpos($misloeSvg, '>', strpos($misloeSvg, '<svg')) + 1;
+            $innerEnd = strrpos($misloeSvg, '</svg>');
+            $misloeInner = substr($misloeSvg, $innerStart, $innerEnd - $innerStart);
+            // Remove <?xml, <!DOCTYPE, and <!-- comments -->
+            $misloeInner = preg_replace('/<\?xml[^?]*\?>/', '', $misloeInner);
+
+            // Inline the CSS class fills so it works when embedded inside a <g>
+            // misloe.svg classes: st0=#AEB0B2, st1=#FFFFFF, st2=#FFF200, st3=#000000(default), st4=#FFFFFF
+            $styleMap = [
+                'st0' => 'fill-rule:evenodd;clip-rule:evenodd;fill:#AEB0B2',
+                'st1' => 'fill-rule:evenodd;clip-rule:evenodd;fill:#FFFFFF',
+                'st2' => 'fill:#FFF200',
+                'st3' => 'fill-rule:evenodd;clip-rule:evenodd',
+                'st4' => 'fill:#FFFFFF',
+            ];
+            // Remove the <style> block entirely
+            $misloeInner = preg_replace('/<style[^>]*>.*?<\/style>/s', '', $misloeInner);
+            // Replace class="stX" with inline style="..."
+            foreach ($styleMap as $cls => $style) {
+                $misloeInner = str_replace('class="' . $cls . '"', 'style="' . $style . '"', $misloeInner);
+            }
+
+            // Size and position: small icon in bottom-right
+            $logoSize = round($svgW * 0.06);  // ~6% of width
+            $logoScale = $logoSize / 190;      // misloe.svg viewBox is 190x190
+            $logoX = $svgW - $logoSize - round($svgW * 0.015);
+            $logoY = $svgH - $logoSize - round($svgH * 0.015);
+
+            // Credit text
+            $textSize = round($svgW * 0.012);
+            if ($textSize < 5) $textSize = 5;
+            $textX = $logoX - round($svgW * 0.005);
+            $textY = $logoY + $logoSize / 2 + $textSize / 3;
+
+            $padX = round($textSize * 0.4);
+            $padY = round($textSize * 0.3);
+            $estTextW = round($textSize * 0.6 * 26);
+            $rectX = $textX - $estTextW - $padX;
+            $rectY = $textY - $textSize + $padY;
+            $rectW = $estTextW + $padX * 2;
+            $rectH = $textSize + $padY * 2;
+            $rectR = round($textSize * 0.3);
+
+            $watermark = '  <g opacity="0.85">' . "\n"
+                       . '    <g transform="translate(' . $logoX . ',' . $logoY . ') scale(' . round($logoScale, 6) . ')">' . "\n"
+                       . $misloeInner . "\n"
+                       . '    </g>' . "\n"
+                       . '    <rect x="' . $rectX . '" y="' . $rectY . '" width="' . $rectW . '" height="' . $rectH . '" rx="' . $rectR . '" fill="#000000" opacity="0.7"/>' . "\n"
+                       . '    <text x="' . $textX . '" y="' . $textY . '" font-family="sans-serif" font-size="' . $textSize . '" fill="#ffffff" text-anchor="end" opacity="1">partizan-histerical/lampas</text>' . "\n"
+                       . '  </g>';
+        }
+
         $img = $this->parse(
             'svg.pattern.wrapper',
             [
@@ -124,6 +183,7 @@ class LampasSvg {
                 'bg-image' => $bgImage,
                 'content-transform' => $contentTransform,
                 'segments' => implode("\n", $this->segments),
+                'watermark' => $watermark,
             ]
         );
 
@@ -179,11 +239,16 @@ class LampasSvg {
         $this->font = json_decode(file_get_contents(__DIR__ . '/font.json'), true);
     }
 
+    public function getBackgroundDataUrl() {
+        return $this->bgDataUrl;
+    }
+
     private $settings;
     private $font;
     private $text = [];
     private $log = [];
     private $segments = [];
+    private $bgDataUrl = '';
 }
 
 // --- Handle form submission ---
@@ -222,6 +287,7 @@ $svgOut = substr($svgOut, 0, 64);
 
 $l->makeImage($svgOut);
 $logMessages = $l->getLog();
+$bgDataUrl = $l->getBackgroundDataUrl();
 $svgFile = 'out/' . $svgOut . '.svg';
 
 ?>
@@ -238,8 +304,8 @@ $svgFile = 'out/' . $svgOut . '.svg';
     <div class="actions">
         <a href="index.php">&larr; NAZAD</a>
         <a href="<?= htmlspecialchars($svgFile) ?>" download="<?= htmlspecialchars($svgOut) ?>.svg">PREUZMI SVG</a>
-        <a href="#" id="btn-png" class="disabled">PREUZMI PNG</a>
-        <a href="#" id="btn-share" class="disabled">PODELI</a>
+        <a href="#" id="btn-png" class="disabled" title="Preuzmi PNG"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PNG</a>
+        <a href="#" id="btn-share" class="disabled" title="Podeli"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:4px"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11A2.99 2.99 0 0 0 18 8a3 3 0 1 0-3-3c0 .24.04.47.09.7L8.04 9.81A2.99 2.99 0 0 0 6 9a3 3 0 1 0 0 6c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65a2.92 2.92 0 0 0 3 2.92 2.92 2.92 0 0 0 2.92-2.92A2.92 2.92 0 0 0 18 16.08z"/></svg>PODELI</a>
     </div>
 
     <div class="result-wrap">
@@ -262,33 +328,79 @@ $svgFile = 'out/' . $svgOut . '.svg';
     var canvas  = document.getElementById('png-canvas');
     var btnPng  = document.getElementById('btn-png');
     var pngName = <?= json_encode($svgOut) ?>;
+    var svgSrc  = <?= json_encode($svgFile) ?>;
+    var bgDataUrl = <?= json_encode($bgDataUrl) ?>;
     var pngDataUrl = null;
+    var pngBlob = null;
+    var btnShare = document.getElementById('btn-share');
 
-    svgImg.addEventListener('load', function() {
-        // Read intrinsic SVG dimensions from the loaded image
+    function finalizePng(ctx, w, h) {
+        try {
+            pngDataUrl = canvas.toDataURL('image/png');
+            btnPng.classList.remove('disabled');
+            enableShareButton();
+        } catch(e) {
+            console.warn('PNG export failed:', e);
+        }
+    }
+
+    function drawSvgOverlay(ctx, w, h) {
+        // Fetch SVG, strip the <image> tag (bg already drawn), render as blob
+        fetch(svgSrc)
+            .then(function(r) { return r.text(); })
+            .then(function(svgText) {
+                // Remove the background <image> element so only lampas + watermark remain
+                svgText = svgText.replace(/<image[^>]*href="data:[^"]*"[^>]*\/?>\s*/g, '');
+                var blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+                var url = URL.createObjectURL(blob);
+                var img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, w, h);
+                    URL.revokeObjectURL(url);
+                    finalizePng(ctx, w, h);
+                };
+                img.src = url;
+            })
+            .catch(function(e) {
+                console.warn('SVG overlay failed:', e);
+                finalizePng(ctx, w, h);
+            });
+    }
+
+    // Wait for the preview image to load to get dimensions
+    function startRender() {
         var natW = svgImg.naturalWidth;
         var natH = svgImg.naturalHeight;
         if (!natW || !natH) return;
 
-        // Scale to max width 1000px, keep aspect ratio
         var scale = Math.min(1, MAX_PNG_WIDTH / natW);
         var w = Math.round(natW * scale);
         var h = Math.round(natH * scale);
 
         canvas.width  = w;
         canvas.height = h;
-
         var ctx = canvas.getContext('2d');
-        ctx.drawImage(svgImg, 0, 0, w, h);
 
-        try {
-            pngDataUrl = canvas.toDataURL('image/png');
-            btnPng.classList.remove('disabled');
-        } catch(e) {
-            // CORS or tainted canvas — fall back gracefully
-            console.warn('PNG export failed:', e);
+        if (bgDataUrl) {
+            // Layer 1: draw the background photo directly on canvas
+            var bgImg = new Image();
+            bgImg.onload = function() {
+                ctx.drawImage(bgImg, 0, 0, w, h);
+                // Layer 2: draw SVG overlay (lampas pixels + watermark, no bg image)
+                drawSvgOverlay(ctx, w, h);
+            };
+            bgImg.src = bgDataUrl;
+        } else {
+            // No background photo — just render the full SVG
+            drawSvgOverlay(ctx, w, h);
         }
-    });
+    }
+
+    if (svgImg.complete && svgImg.naturalWidth) {
+        startRender();
+    } else {
+        svgImg.addEventListener('load', startRender);
+    }
 
     btnPng.addEventListener('click', function(e) {
         e.preventDefault();
@@ -301,52 +413,56 @@ $svgFile = 'out/' . $svgOut . '.svg';
         document.body.removeChild(a);
     });
 
-    // ----- Share button (Web Share API) -----
-    var btnShare = document.getElementById('btn-share');
-    var pngBlob = null;
-
+    // ----- Share button -----
     function enableShareButton() {
         if (!pngDataUrl) return;
-        // Convert data URL to Blob
         try {
             var byteString = atob(pngDataUrl.split(',')[1]);
             var ab = new ArrayBuffer(byteString.length);
             var ia = new Uint8Array(ab);
             for (var i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
             pngBlob = new Blob([ab], { type: 'image/png' });
-
-            // Check if sharing files is supported
-            if (navigator.canShare && navigator.canShare({ files: [new File([pngBlob], pngName + '.png', { type: 'image/png' })] })) {
-                btnShare.classList.remove('disabled');
-            } else if (navigator.share) {
-                // Fallback: share without file (just text/url) on desktop
-                btnShare.classList.remove('disabled');
-            }
+            // Always enable — we have fallback for non-share browsers
+            btnShare.classList.remove('disabled');
         } catch(e) {
             console.warn('Share setup failed:', e);
         }
     }
 
-    // Call after PNG is ready
-    var origOnLoad = svgImg.onload;
-    svgImg.addEventListener('load', function() { enableShareButton(); });
-    // If image already loaded (cached)
-    if (pngDataUrl) enableShareButton();
-
     btnShare.addEventListener('click', function(e) {
         e.preventDefault();
-        if (!pngBlob || !navigator.share) return;
+        if (!pngBlob) return;
 
-        var file = new File([pngBlob], pngName + '.png', { type: 'image/png' });
-        var shareData = { title: 'Lampaš', text: 'Lampaš sa stadiona JNA' };
+        // Try Web Share API with file (mobile)
+        if (navigator.share) {
+            var file = new File([pngBlob], pngName + '.png', { type: 'image/png' });
+            var shareData = { title: 'Lampaš', text: 'Lampaš sa stadiona JNA' };
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            shareData.files = [file];
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                shareData.files = [file];
+            }
+
+            navigator.share(shareData).catch(function(err) {
+                if (err.name !== 'AbortError') console.warn('Share failed:', err);
+            });
+            return;
         }
 
-        navigator.share(shareData).catch(function(err) {
-            if (err.name !== 'AbortError') console.warn('Share failed:', err);
-        });
+        // Fallback: copy PNG to clipboard (desktop)
+        if (navigator.clipboard && navigator.clipboard.write) {
+            var item = new ClipboardItem({ 'image/png': pngBlob });
+            navigator.clipboard.write([item]).then(function() {
+                var orig = btnShare.textContent;
+                btnShare.innerHTML = btnShare.innerHTML.replace('PODELI', 'KOPIRANO!');
+                setTimeout(function() { btnShare.innerHTML = btnShare.innerHTML.replace('KOPIRANO!', 'PODELI'); }, 1500);
+            }).catch(function() {
+                // Last fallback: open image in new tab
+                window.open(pngDataUrl, '_blank');
+            });
+        } else {
+            // Final fallback: open in new tab
+            window.open(pngDataUrl, '_blank');
+        }
     });
 })();
 </script>
