@@ -22,7 +22,7 @@ class LampasSvg {
         $pixels = [];
         // draw pixels
         if (!isset($this->font[mb_strtoupper($char)])) {
-            $this->log[] = "<p>No font defined for: " . mb_strtoupper($char) . "</p>";
+            $this->log[] = "No font defined for: " . mb_strtoupper($char);
         } else {
             $font = $this->font[mb_strtoupper($char)];
             for ($row=0; $row<7; $row++)
@@ -43,7 +43,6 @@ class LampasSvg {
         $this->segments[] = $this->parse(
             'svg.pattern.segment',
             [
-                //<rect class="segment" x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" />
                 'x' => $x + $this->settings['segment-rect-offset-x'],
                 'y' => $y + $this->settings['segment-rect-offset-y'],
                 'w' => $this->settings['segment-rect-width'],
@@ -66,7 +65,12 @@ class LampasSvg {
                 'segments' => implode("\n", $this->segments),
             ]
         );
-        file_put_contents (__DIR__ . '/out/' . $filename . '.svg', $img);
+
+        $outDir = __DIR__ . '/out';
+        if (!is_dir($outDir)) {
+            mkdir($outDir, 0755, true);
+        }
+        file_put_contents($outDir . '/' . $filename . '.svg', $img);
     }
 
     private function parse($filename, $replacements) {
@@ -86,8 +90,8 @@ class LampasSvg {
     }
 
     public function __construct() {
-        $this->settings = json_decode(file_get_contents('settings.svg.json'), true);
-        $this->font = json_decode(file_get_contents('font.json'), true);
+        $this->settings = json_decode(file_get_contents(__DIR__ . '/settings.svg.json'), true);
+        $this->font = json_decode(file_get_contents(__DIR__ . '/font.json'), true);
     }
 
     private $settings;
@@ -97,26 +101,127 @@ class LampasSvg {
     private $segments = [];
 }
 
+// --- Handle form submission ---
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: index.php');
+    exit;
+}
+
+$rows = [];
+for ($i = 1; $i <= 8; $i++) {
+    $rows[] = isset($_POST['row' . $i]) ? mb_substr(trim($_POST['row' . $i]), 0, 26) : '';
+}
+
 $l = new LampasSvg();
-$l->setText([
-    $_POST['row1'],
-    $_POST['row2'],
-    $_POST['row3'],
-    $_POST['row4'],
-    $_POST['row5'],
-    $_POST['row6'],
-    $_POST['row7'],
-    $_POST['row8']
-]);
+$l->setText($rows);
 
-$svgOut = strtoupper(trim($_POST['row3'].$_POST['row4'].$_POST['row5'].$_POST['row6'].$_POST['row7'].$_POST['row8']));
-$svgOut = preg_replace('/[^A-Z0-9ČĆĐŠŽ-]/', '', $svgOut);
-$svgOut = iconv("UTF-8", "ASCII//TRANSLIT", $svgOut);
-$svgOut = str_replace("'","",$svgOut);
+// Generate a safe filename from text content
+$svgOut = mb_strtoupper(implode('', array_map('trim', $rows)));
+$svgOut = preg_replace('/[^A-Z0-9ČĆĐŠŽ\-]/u', '', $svgOut);
+$svgOut = transliterator_transliterate('Any-Latin; Latin-ASCII', $svgOut);
+$svgOut = preg_replace('/[^A-Z0-9\-]/', '', $svgOut);
+if (strlen($svgOut) === 0) $svgOut = 'lampas_' . time();
+$svgOut = substr($svgOut, 0, 64);
 
-if (strlen($svgOut)===0) $svgOut="empty_" . time();
-echo($svgOut)."<br>";
 $l->makeImage($svgOut);
-echo implode("\n", $l->getLog());
-echo "<img height=456 src=out/" .$svgOut. ".svg>";
-exit(0);
+$logMessages = $l->getLog();
+$svgFile = 'out/' . $svgOut . '.svg';
+
+?>
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lampaš - Rezultat</title>
+    <link rel="stylesheet" href="css/lampas.css" type="text/css" media="screen">
+    <style>
+        .result-wrap { text-align: center; margin: 2rem 0; }
+        .result-wrap img { max-width: 100%; height: auto; border: 1px solid #333; }
+        .actions { margin: 1.5rem 0; text-align: center; }
+        .actions a {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            margin: 0 0.5rem;
+            color: #fff3a7;
+            background-color: #404545;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+        .actions a:hover { background-color: #575d5d; }
+        .actions a.disabled { opacity: 0.4; pointer-events: none; }
+        .log { color: #6d6b67; font-size: 0.85rem; margin-top: 1rem; }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+    <div class="actions">
+        <a href="index.php">&larr; NAZAD</a>
+        <a href="<?= htmlspecialchars($svgFile) ?>" download="<?= htmlspecialchars($svgOut) ?>.svg">PREUZMI SVG</a>
+        <a href="#" id="btn-png" class="disabled">PREUZMI PNG</a>
+    </div>
+
+    <div class="result-wrap">
+        <img id="svg-img" src="<?= htmlspecialchars($svgFile) ?>" alt="Lampaš">
+        <canvas id="png-canvas"></canvas>
+    </div>
+
+<?php if (!empty($logMessages)): ?>
+    <div class="log">
+        <?php foreach ($logMessages as $msg): ?>
+            <p><?= htmlspecialchars($msg) ?></p>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+<script>
+(function() {
+    var MAX_PNG_WIDTH = 1000;
+    var svgImg = document.getElementById('svg-img');
+    var canvas  = document.getElementById('png-canvas');
+    var btnPng  = document.getElementById('btn-png');
+    var pngName = <?= json_encode($svgOut) ?>;
+    var pngDataUrl = null;
+
+    svgImg.addEventListener('load', function() {
+        // Read intrinsic SVG dimensions from the loaded image
+        var natW = svgImg.naturalWidth;
+        var natH = svgImg.naturalHeight;
+        if (!natW || !natH) return;
+
+        // Scale to max width 1000px, keep aspect ratio
+        var scale = Math.min(1, MAX_PNG_WIDTH / natW);
+        var w = Math.round(natW * scale);
+        var h = Math.round(natH * scale);
+
+        canvas.width  = w;
+        canvas.height = h;
+
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(svgImg, 0, 0, w, h);
+
+        try {
+            pngDataUrl = canvas.toDataURL('image/png');
+            btnPng.classList.remove('disabled');
+        } catch(e) {
+            // CORS or tainted canvas — fall back gracefully
+            console.warn('PNG export failed:', e);
+        }
+    });
+
+    btnPng.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (!pngDataUrl) return;
+        var a = document.createElement('a');
+        a.href = pngDataUrl;
+        a.download = pngName + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+})();
+</script>
+
+</body>
+</html>

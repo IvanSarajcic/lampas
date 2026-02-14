@@ -1,1 +1,6 @@
-init
+Possible future enhancements:
+- Add missing font characters: ! ? ( ) / + = ' "
+- Live preview with JavaScript (no page reload)
+- Responsive design for mobile
+- Color picker for lamp/background colors
+- PNG export option (canvas-based, client-side)
