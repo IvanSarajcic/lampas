@@ -7,7 +7,7 @@
   .background {fill:{{bg}}}
   .segment {fill:{{segment-bg}};opacity:{{segment-opacity}}}
   .pixel-off {fill:{{pixel-off-bg}}}
-  .pixel-on {fill:{{pixel-on-bg}}}
+  .pixel-on {fill:{{pixel-on-bg}};{{pixel-on-extra}}}
   ]]>
   </style>
  </defs>

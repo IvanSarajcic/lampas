@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lampaš sa stadiona JNA</title>
-    <link rel="stylesheet" href="css/lampas.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="css/lampas.css?v=<?= filemtime(__DIR__ . '/css/lampas.css') ?>" type="text/css" media="screen">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6114758564581825"
+     crossorigin="anonymous"></script>
 </head>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-QGN1HVLG4S"></script>
@@ -28,6 +30,10 @@
     <input type="hidden" name="row7" id="row7">
     <input type="hidden" name="row8" id="row8">
     <input type="hidden" name="bg_id" id="bg_id" value="none">
+    <input type="hidden" name="malfunction" id="malfunction" value="0">
+    <input type="hidden" name="brightness" id="brightness" value="100">
+    <input type="hidden" name="glow" id="glow" value="0">
+    <input type="hidden" name="warmth" id="warmth" value="0">
 </form>
 
 <div>
@@ -49,6 +55,12 @@
 
 <div id="lampas-controls-bottom">
     <button type="button" id="btn-delete" title=""><svg class="btn" viewBox="0 -5 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M22.647,13.24 C23.039,13.63 23.039,14.27 22.647,14.66 C22.257,15.05 21.623,15.05 21.232,14.66 L18.993,12.42 L16.725,14.69 C16.331,15.08 15.692,15.08 15.298,14.69 C14.904,14.29 14.904,13.65 15.298,13.26 L17.566,10.99 L15.327,8.76 C14.936,8.37 14.936,7.73 15.327,7.34 C15.718,6.95 16.352,6.95 16.742,7.34 L18.981,9.58 L21.281,7.28 C21.676,6.89 22.314,6.89 22.708,7.28 C23.103,7.68 23.103,8.31 22.708,8.71 L20.408,11.01 L22.647,13.24 Z M27.996,0 L10.051,0 C9.771,-0.02 9.485,0.07 9.271,0.28 L0.285,10.22 C0.074,10.43 -0.017,10.71 -0.002,10.98 C-0.017,11.26 0.074,11.54 0.285,11.75 L9.271,21.69 C9.467,21.88 9.723,21.98 9.979,21.98 L9.979,22 L27.996,22 C30.207,22 32,20.21 32,18 L32,4 C32,1.79 30.207,0 27.996,0 Z"/></svg></button>
+    <div id="sliders-wrap">
+        <div class="slider-row"><span class="slider-tag">kvar</span><input type="range" class="slider" id="malfunction-slider" min="0" max="40" step="1" value="0"><span class="slider-val" id="malfunction-label">0%</span></div>
+        <div class="slider-row"><span class="slider-tag">sjaj</span><input type="range" class="slider" id="brightness-slider" min="50" max="100" step="1" value="100"><span class="slider-val" id="brightness-label">100%</span></div>
+        <div class="slider-row"><span class="slider-tag">aura</span><input type="range" class="slider" id="glow-slider" min="0" max="250" step="2" value="0"><span class="slider-val" id="glow-label">0</span></div>
+        <div class="slider-row"><span class="slider-tag">boja</span><input type="range" class="slider" id="warmth-slider" min="0" max="100" step="1" value="0"><span class="slider-val" id="warmth-label">0%</span></div>
+    </div>
     <button type="button" id="btn-submit" title=""><svg class="btn" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 30c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M35 20c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M35 40c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M19.007 25.885l12.88 6.44-.895 1.788-12.88-6.44z"/><path d="M30.993 15.885l.894 1.79-12.88 6.438-.894-1.79z"/></svg></button>
 </div>
 
@@ -176,17 +188,9 @@
         // Defs + style
         var defs = document.createElementNS(NS, 'defs');
         styleEl = document.createElementNS(NS, 'style');
-        var segOp = (skew['segment-rect-opacity'] !== undefined) ? skew['segment-rect-opacity'] : 1;
-        var lampColor = bgEntry['lamp-color'] || S['segment-circle-on-bg-color'];
-        styleEl.textContent =
-            '.bg{fill:' + S['bg-color'] + '}' +
-            '.segment{fill:' + S['segment-rect-bg-color'] + ';opacity:' + segOp + '}' +
-            '.pixel-off{fill:' + S['segment-circle-off-bg-color'] + '}' +
-            '.pixel-on{fill:' + lampColor + '}' +
-            '.row-active .segment{fill:#2d2729;stroke:' + lampColor + ';stroke-width:4;stroke-opacity:0.25}' +
-            '.cursor-on{fill:' + lampColor + ';opacity:0.35}';
         defs.appendChild(styleEl);
         svgEl.appendChild(defs);
+        updateSvgStyle();
 
         // Background rect
         var bgR = document.createElementNS(NS, 'rect');
@@ -302,12 +306,54 @@
     }
 
     // ----- Render a single character at [row][col] -----
+    var malfunctionRate = 0;
+    var brightnessVal = 1.0;
+    var glowVal = 0;
+    var warmthVal = 0;
+
+    // Compute warm lamp color: #ffffff -> #ffff00 -> #ffd700
+    function getWarmColor(baseHex, t) {
+        if (t <= 0) return baseHex;
+        var r0 = parseInt(baseHex.substr(1,2),16), g0 = parseInt(baseHex.substr(3,2),16), b0 = parseInt(baseHex.substr(5,2),16);
+        var r1, g1, b1, lt;
+        if (t <= 0.5) {
+            // First half: base -> #ffff00
+            r1 = 255; g1 = 255; b1 = 0;
+            lt = t * 2;
+        } else {
+            // Second half: #ffff00 -> #ffd700
+            r0 = 255; g0 = 255; b0 = 0;
+            r1 = 255; g1 = 215; b1 = 0;
+            lt = (t - 0.5) * 2;
+        }
+        var r = Math.round(r0 + (r1 - r0) * lt), g = Math.round(g0 + (g1 - g0) * lt), b = Math.round(b0 + (b1 - b0) * lt);
+        return '#' + ((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1);
+    }
+
+    function updateSvgStyle() {
+        if (!styleEl || !currentBg) return;
+        var skew = currentBg.skew_data || {};
+        var segOp = (skew['segment-rect-opacity'] !== undefined) ? skew['segment-rect-opacity'] : 1;
+        var baseLampColor = currentBg['lamp-color'] || S['segment-circle-on-bg-color'];
+        var lampColor = getWarmColor(baseLampColor, warmthVal);
+        var glowCss = glowVal > 0 ? 'filter:drop-shadow(0 0 ' + glowVal + 'px ' + lampColor + ');' : '';
+        styleEl.textContent =
+            '.bg{fill:' + S['bg-color'] + '}' +
+            '.segment{fill:' + S['segment-rect-bg-color'] + ';opacity:' + segOp + '}' +
+            '.pixel-off{fill:' + S['segment-circle-off-bg-color'] + '}' +
+            '.pixel-on{fill:' + lampColor + ';opacity:' + brightnessVal + ';' + glowCss + '}' +
+            '.row-active .segment{fill:#2d2729;stroke:' + lampColor + ';stroke-width:4;stroke-opacity:0.25}' +
+            '.cursor-on{fill:' + lampColor + ';opacity:0.35}';
+    }
+
     function renderChar(row, col, ch) {
         var upper = ch.toUpperCase();
         var fontData = FONT[upper] || FONT[' '];
         for (var dr = 0; dr < 7; dr++) {
             for (var dc = 0; dc < 5; dc++) {
                 var on = fontData && fontData[dr] && fontData[dr][dc] ? true : false;
+                // burnt-out lamp: randomly extinguish on-pixels
+                if (on && malfunctionRate > 0 && Math.random() < malfunctionRate) on = false;
                 var circle = pixels[row][col][dr][dc];
                 circle.setAttribute('class', on ? 'pixel-on' : 'pixel-off');
                 circle.setAttribute('r', on ? S['segment-circle-on-radius'] : S['segment-circle-radius']);
@@ -489,7 +535,48 @@
             document.getElementById('row' + (i + 1)).value = text[i];
         }
         document.getElementById('bg_id').value = currentBg ? currentBg.id : 'none';
+        document.getElementById('malfunction').value = (malfunctionRate * 100).toFixed(1);
+        document.getElementById('brightness').value = (brightnessVal * 100).toFixed(0);
+        document.getElementById('glow').value = glowVal;
+        document.getElementById('warmth').value = (warmthVal * 100).toFixed(0);
     }
+
+    // ----- Sliders -----
+    var malfSlider = document.getElementById('malfunction-slider');
+    var malfLabel = document.getElementById('malfunction-label');
+    malfSlider.addEventListener('input', function() {
+        malfunctionRate = parseInt(malfSlider.value, 10) / 1000;
+        malfLabel.textContent = (malfunctionRate * 100).toFixed(1) + '%';
+        for (var i = 0; i < ROWS; i++) renderRow(i);
+        syncHiddenInputs();
+    });
+
+    var brightSlider = document.getElementById('brightness-slider');
+    var brightLabel = document.getElementById('brightness-label');
+    brightSlider.addEventListener('input', function() {
+        brightnessVal = parseInt(brightSlider.value, 10) / 100;
+        brightLabel.textContent = Math.round(brightnessVal * 100) + '%';
+        updateSvgStyle();
+        syncHiddenInputs();
+    });
+
+    var glowSlider = document.getElementById('glow-slider');
+    var glowLabel = document.getElementById('glow-label');
+    glowSlider.addEventListener('input', function() {
+        glowVal = parseInt(glowSlider.value, 10);
+        glowLabel.textContent = glowVal + 'px';
+        updateSvgStyle();
+        syncHiddenInputs();
+    });
+
+    var warmSlider = document.getElementById('warmth-slider');
+    var warmLabel = document.getElementById('warmth-label');
+    warmSlider.addEventListener('input', function() {
+        warmthVal = parseInt(warmSlider.value, 10) / 100;
+        warmLabel.textContent = Math.round(warmthVal * 100) + '%';
+        updateSvgStyle();
+        syncHiddenInputs();
+    });
 
     // ----- Background dropdown -----
     bgSelect.addEventListener('change', function() {
@@ -557,11 +644,16 @@
             segments[i].setAttribute('fill', S['segment-rect-bg-color']);
             segments[i].setAttribute('opacity', segOp);
         }
-        var lampColor = (currentBg && currentBg['lamp-color']) || S['segment-circle-on-bg-color'];
+        var baseLampColor = (currentBg && currentBg['lamp-color']) || S['segment-circle-on-bg-color'];
+        var lampColor = getWarmColor(baseLampColor, warmthVal);
         var pxOff = clone.querySelectorAll('.pixel-off');
         for (var i = 0; i < pxOff.length; i++) pxOff[i].setAttribute('fill', S['segment-circle-off-bg-color']);
         var pxOn = clone.querySelectorAll('.pixel-on');
-        for (var i = 0; i < pxOn.length; i++) pxOn[i].setAttribute('fill', lampColor);
+        for (var i = 0; i < pxOn.length; i++) {
+            pxOn[i].setAttribute('fill', lampColor);
+            if (brightnessVal < 1) pxOn[i].setAttribute('opacity', brightnessVal);
+            if (glowVal > 0) pxOn[i].style.filter = 'drop-shadow(0 0 ' + glowVal + 'px ' + lampColor + ')';
+        }
 
         var vb = svgEl.getAttribute('viewBox').split(' ');
         var w = parseFloat(vb[2]);

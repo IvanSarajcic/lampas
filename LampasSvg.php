@@ -28,6 +28,8 @@ class LampasSvg {
             for ($row=0; $row<7; $row++)
                 for ($col=0; $col<5; $col++) {
                     $pixel = isset($font[$row][$col]) ? $font[$row][$col] : 0;
+                    // burnt-out lamp: randomly extinguish on-pixels
+                    if ($pixel && $this->malfunctionRate > 0 && mt_rand(1, 1000) <= $this->malfunctionRate * 1000) $pixel = 0;
                     $pixels[] = $this->parse(
                         'svg.pattern.pixel',
                         [
@@ -170,6 +172,32 @@ class LampasSvg {
                        . '  </g>';
         }
 
+        // Compute warm lamp color: #ffffff -> #ffff00 -> #ffd700
+        $baseOnColor = $this->settings['segment-circle-on-bg-color'];
+        $pixelOnColor = $baseOnColor;
+        if ($this->warmth > 0) {
+            $r0 = hexdec(substr($baseOnColor,1,2)); $g0 = hexdec(substr($baseOnColor,3,2)); $b0 = hexdec(substr($baseOnColor,5,2));
+            if ($this->warmth <= 0.5) {
+                $r1 = 255; $g1 = 255; $b1 = 0;
+                $lt = $this->warmth * 2;
+            } else {
+                $r0 = 255; $g0 = 255; $b0 = 0;
+                $r1 = 255; $g1 = 215; $b1 = 0;
+                $lt = ($this->warmth - 0.5) * 2;
+            }
+            $r = round($r0+($r1-$r0)*$lt); $g = round($g0+($g1-$g0)*$lt); $b = round($b0+($b1-$b0)*$lt);
+            $pixelOnColor = sprintf('#%02x%02x%02x', $r, $g, $b);
+        }
+
+        // Build pixel-on extra CSS
+        $pixelOnExtra = '';
+        if ($this->glow > 0) {
+            $pixelOnExtra .= 'filter:drop-shadow(0 0 ' . $this->glow . 'px ' . $pixelOnColor . ');';
+        }
+        if ($this->brightness < 1) {
+            $pixelOnExtra .= 'opacity:' . $this->brightness . ';';
+        }
+
         $img = $this->parse(
             'svg.pattern.wrapper',
             [
@@ -179,7 +207,8 @@ class LampasSvg {
                 'segment-bg' => $this->settings['segment-rect-bg-color'],
                 'segment-opacity' => $this->settings['segment-rect-opacity'] ?? 1,
                 'pixel-off-bg' => $this->settings['segment-circle-off-bg-color'],
-                'pixel-on-bg' => $this->settings['segment-circle-on-bg-color'],
+                'pixel-on-bg' => $pixelOnColor,
+                'pixel-on-extra' => $pixelOnExtra,
                 'bg-image' => $bgImage,
                 'content-transform' => $contentTransform,
                 'segments' => implode("\n", $this->segments),
@@ -243,6 +272,11 @@ class LampasSvg {
         return $this->bgDataUrl;
     }
 
+    public $malfunctionRate = 0;
+    public $brightness = 1.0;
+    public $glow = 0;
+    public $warmth = 0;
+
     private $settings;
     private $font;
     private $text = [];
@@ -271,7 +305,20 @@ foreach ($backgrounds as $bg) {
     if ($bg['id'] === $bgId) { $selectedBg = $bg; break; }
 }
 
+$malfunctionPct = isset($_POST['malfunction']) ? floatval($_POST['malfunction']) : 0;
+$malfunctionPct = max(0, min(4, $malfunctionPct));
+$brightnessPct = isset($_POST['brightness']) ? floatval($_POST['brightness']) : 100;
+$brightnessPct = max(50, min(100, $brightnessPct));
+$glowRaw = isset($_POST['glow']) ? floatval($_POST['glow']) : 0;
+$glowRaw = max(0, min(80, $glowRaw));
+$warmthPct = isset($_POST['warmth']) ? floatval($_POST['warmth']) : 0;
+$warmthPct = max(0, min(100, $warmthPct));
+
 $l = new LampasSvg();
+$l->malfunctionRate = $malfunctionPct / 100;
+$l->brightness = $brightnessPct / 100;
+$l->glow = $glowRaw / 10;
+$l->warmth = $warmthPct / 100;
 if ($selectedBg) {
     $l->applyBackground($selectedBg);
 }
@@ -297,7 +344,7 @@ $svgFile = 'out/' . $svgOut . '.svg';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lampaš - Rezultat</title>
-    <link rel="stylesheet" href="css/lampas.css" type="text/css" media="screen">
+    <link rel="stylesheet" href="css/lampas.css?v=<?= filemtime(__DIR__ . '/css/lampas.css') ?>" type="text/css" media="screen">
     <style>canvas { display: none; }</style>
 </head>
 <body>
