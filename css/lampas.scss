@@ -2,7 +2,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 
 *, body {
     font-family: "Courier New", monospace;
-    font-size: 24px;
+    font-size: 16px;
     font-weight: bold;
     color: #fff3a7;
     background-color: #2b292a;
@@ -18,7 +18,7 @@ body {
 
 // --- Scoreboard input ---
 #lampas-wrap {
-    margin: 1rem auto 0;
+    margin: 0 auto 0;
     cursor: default;
     svg {
         height: auto;
@@ -30,9 +30,10 @@ body {
     }
 }
 
-#lampas-controls {
+#lampas-controls-top, #lampas-controls-bottom {
     text-align: center;
-    margin: 1rem 0;
+    margin: 0;
+    display: flex;
 }
 
 #bg-select {
@@ -42,11 +43,21 @@ body {
     color: #fff3a7;
     background-color: #404545;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 1rem;
     cursor: pointer;
     margin: 0.5rem;
+    box-sizing: border-box;
+    transition: background-color 370ms;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff3a7' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
     &:hover {
         background-color: #575d5d;
+    }
+    &:focus-visible {
+        outline: none;
     }
     option {
         background-color: #404545;
@@ -55,19 +66,62 @@ body {
     }
 }
 
-#btn-submit {
+#btn-delete, #btn-submit {
+    margin: 0.5rem;
+    color: #fff3a7;
+    background-color: #0c020c;
+    border: none;
+    padding: 0.6rem;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 370ms;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    &:hover {
+        background-color: #575d5d;
+    }
+    &:focus-visible {
+        outline: none;
+    }
+    svg {
+        display: block;
+        background-color: initial;
+    }
+    .btn {
+        width: 1.2rem;
+        height: 1.2rem;
+        fill: #fff3a7;
+    }
+}
+
+#lang-select {
     font-family: "Courier New", monospace;
     font-size: 0.85rem;
-    margin: 0.5rem;
     font-weight: bold;
     color: #fff3a7;
     background-color: #404545;
     border: none;
-    padding: 0.6rem 2.5rem;
+    padding: 0.6rem 2rem 0.6rem 1rem;
     cursor: pointer;
-    letter-spacing: 0.15em;
+    margin: 0.5rem;
+    box-sizing: border-box;
+    transition: background-color 370ms;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fff3a7' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
     &:hover {
         background-color: #575d5d;
+    }
+    &:focus-visible {
+        outline: none;
+    }
+    option {
+        background-color: #404545;
+        color: #fff3a7;
+        font-size: 0.7rem;
     }
 }
 
@@ -75,7 +129,7 @@ body {
     text-align: center;
     color: #6d6b67;
     font-size: 0.75rem;
-    margin-bottom: 1rem;
+    padding: 0.25rem;
 }
 
 // --- Result page ---
@@ -98,7 +152,7 @@ body {
         color: #fff3a7;
         background-color: #404545;
         text-decoration: none;
-        font-size: 1rem;
+        font-size: 0.5rem;
         &:hover { background-color: #575d5d; }
         &.disabled { opacity: 0.4; pointer-events: none; }
     }

@@ -21,18 +21,27 @@
     <input type="hidden" name="bg_id" id="bg_id" value="none">
 </form>
 
+<div>
+    <div id="lampas-hint"></div>
+    <div id="lampas-controls-top">
+        <select id="bg-select"></select>
+        <select id="lang-select">
+            <option value="sr">СР</option>
+            <option value="en">EN</option>
+        </select>
+    </div>
+</div>
+
 <div id="lampas-wrap">
     <svg id="lampas-svg" xmlns="http://www.w3.org/2000/svg"></svg>
 </div>
 
-<div id="lampas-controls">
-    <select id="bg-select"></select>
-    <button type="button" id="btn-submit">ПОДЕЛИ</button>
+<div id="lampas-controls-bottom">
+    <button type="button" id="btn-delete" title=""><svg class="btn" viewBox="0 -5 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M22.647,13.24 C23.039,13.63 23.039,14.27 22.647,14.66 C22.257,15.05 21.623,15.05 21.232,14.66 L18.993,12.42 L16.725,14.69 C16.331,15.08 15.692,15.08 15.298,14.69 C14.904,14.29 14.904,13.65 15.298,13.26 L17.566,10.99 L15.327,8.76 C14.936,8.37 14.936,7.73 15.327,7.34 C15.718,6.95 16.352,6.95 16.742,7.34 L18.981,9.58 L21.281,7.28 C21.676,6.89 22.314,6.89 22.708,7.28 C23.103,7.68 23.103,8.31 22.708,8.71 L20.408,11.01 L22.647,13.24 Z M27.996,0 L10.051,0 C9.771,-0.02 9.485,0.07 9.271,0.28 L0.285,10.22 C0.074,10.43 -0.017,10.71 -0.002,10.98 C-0.017,11.26 0.074,11.54 0.285,11.75 L9.271,21.69 C9.467,21.88 9.723,21.98 9.979,21.98 L9.979,22 L27.996,22 C30.207,22 32,20.21 32,18 L32,4 C32,1.79 30.207,0 27.996,0 Z"/></svg></button>
+    <button type="button" id="btn-submit" title=""><svg class="btn" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 30c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M35 20c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M35 40c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M19.007 25.885l12.88 6.44-.895 1.788-12.88-6.44z"/><path d="M30.993 15.885l.894 1.79-12.88 6.438-.894-1.79z"/></svg></button>
 </div>
 
-<div id="lampas-hint">
-    Klikni na red da počneš kucati. Enter za sledeći red. Backspace briše.
-</div>
+
 
 <script>
 (function() {
@@ -40,6 +49,19 @@
     var S = <?= file_get_contents(__DIR__ . '/settings.svg.json') ?>;
     var FONT = <?= file_get_contents(__DIR__ . '/font.json') ?>;
     var BACKGROUNDS = <?= file_get_contents(__DIR__ . '/backgrounds.json') ?>;
+    var LANG = <?= file_get_contents(__DIR__ . '/lang.json') ?>;
+    var currentLang = 'sr';
+
+    function applyLang(lang) {
+        currentLang = lang;
+        var t = LANG[lang];
+        document.title = t['page-title'];
+        document.getElementById('btn-submit').title = t['btn-share'];
+        document.getElementById('btn-delete').title = t['btn-delete'];
+        document.getElementById('lampas-hint').textContent = t['hint'];
+        var noBgOpt = bgSelect.querySelector('option[value="none"]');
+        if (noBgOpt) noBgOpt.textContent = t['no-bg'];
+    }
 
     var ROWS = S['total-rows'];  // 8
     var COLS = S['total-cols'];  // 26
@@ -425,6 +447,11 @@
         syncHiddenInputs();
     });
 
+    // ----- Language switch -----
+    document.getElementById('lang-select').addEventListener('change', function() {
+        applyLang(this.value);
+    });
+
     // ----- Share as PNG -----
     function svgToPng(callback) {
         var clone = svgEl.cloneNode(true);
@@ -457,6 +484,13 @@
         img.src = url;
     }
 
+    document.getElementById('btn-delete').addEventListener('click', function() {
+        for (var i = 0; i < ROWS; i++) text[i] = '';
+        for (var i = 0; i < ROWS; i++) renderRow(i);
+        syncHiddenInputs();
+        selectRow(0);
+    });
+
     document.getElementById('btn-submit').addEventListener('click', function() {
         svgToPng(function(blob) {
             var file = new File([blob], 'lampas.png', {type: 'image/png'});
@@ -479,6 +513,7 @@
     // ----- Initial build -----
     buildSvg(BACKGROUNDS[0]);
     selectRow(0);
+    applyLang(currentLang);
 
 })();
 </script>
