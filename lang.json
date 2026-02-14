@@ -4,13 +4,21 @@
         "hint": "Клик на семафор за унос.",
         "btn-share": "ПОДЕЛИ",
         "btn-delete": "БРИШИ",
-        "no-bg": "Без фотографије"
+        "no-bg": "Без фотографије",
+        "slider-malfunction": "квар",
+        "slider-brightness": "сјај",
+        "slider-glow": "аура",
+        "slider-warmth": "боја"
     },
     "en": {
         "page-title": "`Lampaš` scoreboard from the JNA stadium (1957-2011)",
         "hint": "Click on the scoreboard to type.",
         "btn-share": "SHARE",
         "btn-delete": "DELETE",
-        "no-bg": "No photo"
+        "no-bg": "No photo",
+        "slider-malfunction": "fault",
+        "slider-brightness": "bright",
+        "slider-glow": "glow",
+        "slider-warmth": "color"
     }
 }

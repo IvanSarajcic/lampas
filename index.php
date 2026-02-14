@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lampaš sa stadiona JNA</title>
     <link rel="stylesheet" href="css/lampas.css?v=<?= filemtime(__DIR__ . '/css/lampas.css') ?>" type="text/css" media="screen">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6114758564581825"
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6114758564581825"
      crossorigin="anonymous"></script>
 </head>
 <!-- Google tag (gtag.js) -->
@@ -84,6 +84,12 @@
         document.getElementById('lampas-hint').textContent = t['hint'];
         var noBgOpt = bgSelect.querySelector('option[value="none"]');
         if (noBgOpt) noBgOpt.textContent = t['no-bg'];
+        // Slider labels
+        var tags = document.querySelectorAll('.slider-tag');
+        var tagKeys = ['slider-malfunction', 'slider-brightness', 'slider-glow', 'slider-warmth'];
+        for (var i = 0; i < tags.length && i < tagKeys.length; i++) {
+            tags[i].textContent = t[tagKeys[i]];
+        }
     }
 
     var ROWS = S['total-rows'];  // 8
