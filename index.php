@@ -6,6 +6,15 @@
     <title>Lampaš sa stadiona JNA</title>
     <link rel="stylesheet" href="css/lampas.css" type="text/css" media="screen">
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QGN1HVLG4S"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-QGN1HVLG4S');
+</script>
 <body>
 
 <form id="lampas-form" action="LampasSvg.php" method="post">
