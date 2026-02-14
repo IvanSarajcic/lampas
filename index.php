@@ -95,6 +95,16 @@
     var styleEl = null;
     var currentBg = null;
 
+    // ----- Preload background images -----
+    var preloadedImages = {};
+    for (var p = 0; p < BACKGROUNDS.length; p++) {
+        if (BACKGROUNDS[p].filename) {
+            var preImg = new Image();
+            preImg.src = 'backgrounds/' + BACKGROUNDS[p].filename;
+            preloadedImages[BACKGROUNDS[p].id] = preImg;
+        }
+    }
+
     // ----- Populate background dropdown -----
     var bgSelect = document.getElementById('bg-select');
     for (var b = 0; b < BACKGROUNDS.length; b++) {
@@ -126,12 +136,11 @@
         var usedW = SVG_W;
         var usedH = SVG_H;
 
-        // If background photo, load its dimensions via an Image probe
+        // If background photo, use preloaded image for dimensions
         if (hasBg) {
             var bgPath = 'backgrounds/' + bgEntry.filename;
-            // We'll set a temporary viewBox and update once image loads
-            var probe = new Image();
-            probe.onload = function() {
+            var probe = preloadedImages[bgEntry.id] || new Image();
+            var onReady = function() {
                 usedW = probe.naturalWidth;
                 usedH = probe.naturalHeight;
                 svgEl.setAttribute('viewBox', '0 0 ' + usedW + ' ' + usedH);
@@ -152,7 +161,13 @@
                         'translate(' + offX + ',' + offY + ') scale(' + fitScale + ')');
                 }
             };
-            probe.src = bgPath;
+            // If already loaded, apply immediately; otherwise wait
+            if (probe.complete && probe.naturalWidth > 0) {
+                onReady();
+            } else {
+                probe.onload = onReady;
+                if (!probe.src) probe.src = bgPath;
+            }
         }
 
         svgEl.setAttribute('viewBox', '0 0 ' + usedW + ' ' + usedH);
