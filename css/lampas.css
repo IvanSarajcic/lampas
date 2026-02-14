@@ -21,7 +21,7 @@ blockquote, q {
 }
 
 blockquote:before, blockquote:after, q:before, q:after {
-  content: '';
+  content: "";
   content: none;
 }
 
@@ -30,43 +30,117 @@ blockquote:before, blockquote:after, q:before, q:after {
   font-size: 24px;
   font-weight: bold;
   color: #fff3a7;
-  background-color: #0c2b16;
+  background-color: #2b292a;
 }
 
 body {
-  padding: 2rem;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
 }
 
-input[type="text"] {
-  width: 24rem;
-  background-color: black;
-  border: none;
-  text-transform: uppercase;
+#lampas-wrap {
+  margin: 1rem auto 0;
+  cursor: default;
+}
+#lampas-wrap svg {
+  height: auto;
+  display: block;
+  min-height: 67vh;
+}
+@media screen and (max-width: 768px) {
+  #lampas-wrap svg {
+    width: 100%;
+  }
 }
 
-input[type="submit"] {
-  cursor: pointer;
-  font-size: 1rem;
-  border: none;
+#lampas-controls {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+#bg-select {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #fff3a7;
   background-color: #404545;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  margin: 0.5rem;
+}
+#bg-select:hover {
+  background-color: #575d5d;
+}
+#bg-select option {
+  background-color: #404545;
+  color: #fff3a7;
+  font-size: 0.7rem;
 }
 
-input[type="submit"]:hover {
+#btn-submit {
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  margin: 0.5rem;
+  font-weight: bold;
+  color: #fff3a7;
+  background-color: #404545;
+  border: none;
+  padding: 0.6rem 2.5rem;
+  cursor: pointer;
+  letter-spacing: 0.15em;
+}
+#btn-submit:hover {
   background-color: #575d5d;
 }
 
-td {
-  padding: 0 0.5rem;
-}
-
-td:first-child {
-  font-size: 1rem;
+#lampas-hint {
+  text-align: center;
   color: #6d6b67;
-  text-align: right;
+  font-size: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.submit_cell {
-  padding: 1rem;
+.result-wrap {
+  text-align: center;
+  margin: 2rem 0;
+}
+.result-wrap img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #333;
+}
+
+.actions {
+  margin: 1.5rem 0;
   text-align: center;
 }
+.actions a {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  margin: 0 0.5rem;
+  color: #fff3a7;
+  background-color: #404545;
+  text-decoration: none;
+  font-size: 1rem;
+}
+.actions a:hover {
+  background-color: #575d5d;
+}
+.actions a.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.log {
+  color: #6d6b67;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
 /*# sourceMappingURL=lampas.css.map */

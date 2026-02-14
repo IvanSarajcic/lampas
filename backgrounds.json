@@ -1,0 +1,49 @@
+[
+  {
+    "id": "none",
+    "name": "Bez pozadine",
+    "filename": "",
+    "skew_data": {
+      "content-translate-x": 0,
+      "content-translate-y": 0,
+      "content-scale-x": 1,
+      "content-scale-y": 1,
+      "content-skew-x": 0,
+      "content-skew-y": 0,
+      "content-rotate": 0,
+      "segment-rect-opacity": 1
+    }
+  },
+  {
+    "id": "sporting-1961",
+    "name": "PFC – Sporting (1961)",
+    "filename": "000026 20.09.1961. pfc sporting 2-0.png",
+    "skew_data": {
+      "content-translate-x": 379,
+      "content-translate-y": 280,
+      "content-scale-x": 0.0218,
+      "content-scale-y": 0.0218,
+      "content-skew-x": 0,
+      "content-skew-y": -2.4,
+      "content-rotate": 0,
+      "segment-rect-opacity": 0
+    },
+    "lamp-color": "#cecece"
+  },
+  {
+    "id": "sarajevo-1967",
+    "name": "PFC – Sarajevo (1967)",
+    "filename": "scan0017 pfc sarajevo 2-1 19.3.1967..png",
+    "skew_data": {
+      "content-translate-x": 77,
+      "content-translate-y": 480,
+      "content-scale-x": 0.082,
+      "content-scale-y": 0.077,
+      "content-skew-x": -1,
+      "content-skew-y": 1.25,
+      "content-rotate": 0,
+      "segment-rect-opacity": 0
+    },
+    "lamp-color": "#fefefe"
+  }
+]

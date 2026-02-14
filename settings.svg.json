@@ -1,5 +1,19 @@
 {
-  
+
+"background-image": "",
+"background-width": 0,
+"background-height": 0,
+
+"content-translate-x": 0,
+"content-translate-y": 0,
+"content-scale-x": 1,
+"content-scale-y": 1,
+"content-skew-x": 0,
+"content-skew-y": 0,
+"content-rotate": 0,
+
+"segment-rect-opacity": 1,
+
 "margin-top": 800,
   
 "margin-bottom": 800,
@@ -8,7 +22,7 @@
   
 "margin-right": 1500,
   
-"bg-color": "#2b292a",
+"bg-color": "#171516",
   
 "segment-width": 790,
   

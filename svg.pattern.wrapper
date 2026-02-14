@@ -5,7 +5,7 @@
   <style type="text/css">
   <![CDATA[
   .background {fill:{{bg}}}
-  .segment {fill:{{segment-bg}}}
+  .segment {fill:{{segment-bg}};opacity:{{segment-opacity}}}
   .pixel-off {fill:{{pixel-off-bg}}}
   .pixel-on {fill:{{pixel-on-bg}}}
   ]]>
@@ -13,6 +13,9 @@
  </defs>
  <g>
   <rect class="background" width="{{w}}" height="{{h}}" />
+{{bg-image}}
+  <g transform="{{content-transform}}">
 {{segments}}
+  </g>
  </g>
 </svg>

@@ -53,15 +53,76 @@ class LampasSvg {
     }
 
     private function saveImg($filename) {
+        // Build content transform string from settings
+        $transforms = [];
+        $tx = $this->settings['content-translate-x'] ?? 0;
+        $ty = $this->settings['content-translate-y'] ?? 0;
+        if ($tx != 0 || $ty != 0) $transforms[] = "translate($tx,$ty)";
+        $r = $this->settings['content-rotate'] ?? 0;
+        if ($r != 0) $transforms[] = "rotate($r)";
+        $sx = $this->settings['content-scale-x'] ?? 1;
+        $sy = $this->settings['content-scale-y'] ?? 1;
+        if ($sx != 1 || $sy != 1) $transforms[] = "scale($sx,$sy)";
+        $skx = $this->settings['content-skew-x'] ?? 0;
+        if ($skx != 0) $transforms[] = "skewX($skx)";
+        $sky = $this->settings['content-skew-y'] ?? 0;
+        if ($sky != 0) $transforms[] = "skewY($sky)";
+        $contentTransform = !empty($transforms) ? implode(' ', $transforms) : '';
+
+        // Determine SVG dimensions and background image
+        $gridW = $this->settings['margin-left'] + $this->settings['margin-right'] + $this->settings['total-cols'] * $this->settings['segment-width'];
+        $gridH = $this->settings['margin-top']  + $this->settings['margin-bottom'] + $this->settings['total-rows'] * $this->settings['segment-height'];
+        $autoFitGrid = ($contentTransform === ''); // remember before we override
+
+        $bgImage = '';
+        $bgImagePath = $this->settings['background-image'] ?? '';
+        $bgW = $this->settings['background-width'] ?? 0;
+        $bgH = $this->settings['background-height'] ?? 0;
+
+        if (!empty($bgImagePath) && file_exists(__DIR__ . '/' . $bgImagePath)) {
+            $imgData = file_get_contents(__DIR__ . '/' . $bgImagePath);
+            $ext = strtolower(pathinfo($bgImagePath, PATHINFO_EXTENSION));
+            $mime = ($ext === 'png') ? 'image/png' : (($ext === 'webp') ? 'image/webp' : 'image/jpeg');
+            $b64 = base64_encode($imgData);
+
+            // Get actual image dimensions if not set
+            if ($bgW <= 0 || $bgH <= 0) {
+                $info = getimagesize(__DIR__ . '/' . $bgImagePath);
+                if ($info) { $bgW = $info[0]; $bgH = $info[1]; }
+            }
+
+            // SVG matches photo dimensions when background is set
+            $svgW = $bgW > 0 ? $bgW : $gridW;
+            $svgH = $bgH > 0 ? $bgH : $gridH;
+
+            $bgImage = '  <image width="' . $svgW . '" height="' . $svgH . '" href="data:' . $mime . ';base64,' . $b64 . '" />';
+
+            // Auto-fit content to photo when no custom transform is set
+            if ($autoFitGrid) {
+                $scaleX = $svgW / $gridW;
+                $scaleY = $svgH / $gridH;
+                $fitScale = min($scaleX, $scaleY);
+                $offX = ($svgW - $gridW * $fitScale) / 2;
+                $offY = ($svgH - $gridH * $fitScale) / 2;
+                $contentTransform = "translate($offX,$offY) scale($fitScale)";
+            }
+        } else {
+            $svgW = $gridW;
+            $svgH = $gridH;
+        }
+
         $img = $this->parse(
             'svg.pattern.wrapper',
             [
-                'w' => $this->settings['margin-left'] + $this->settings['margin-right'] + $this->settings['total-cols'] * $this->settings['segment-width'],
-                'h' => $this->settings['margin-top'] + $this->settings['margin-bottom'] + $this->settings['total-rows'] * $this->settings['segment-height'],
+                'w' => $svgW,
+                'h' => $svgH,
                 'bg' => $this->settings['bg-color'],
                 'segment-bg' => $this->settings['segment-rect-bg-color'],
+                'segment-opacity' => $this->settings['segment-rect-opacity'] ?? 1,
                 'pixel-off-bg' => $this->settings['segment-circle-off-bg-color'],
                 'pixel-on-bg' => $this->settings['segment-circle-on-bg-color'],
+                'bg-image' => $bgImage,
+                'content-transform' => $contentTransform,
                 'segments' => implode("\n", $this->segments),
             ]
         );
@@ -81,12 +142,36 @@ class LampasSvg {
     }
 
     public function setText($text = []) {
+        // Center each row horizontally
+        $totalCols = $this->settings['total-cols'];
+        foreach ($text as $i => $row) {
+            $len = mb_strlen($row);
+            if ($len < $totalCols) {
+                $pad = intdiv($totalCols - $len, 2);
+                $text[$i] = str_repeat(' ', $pad) . $row;
+            }
+        }
         $this->text = $text;
         return $this;
     }
 
     public function getLog() {
         return $this->log;
+    }
+
+    public function applyBackground($bgEntry) {
+        if (!$bgEntry || empty($bgEntry['skew_data'])) return;
+        $skew = $bgEntry['skew_data'];
+        // Override transform and opacity settings with background-specific values
+        foreach ($skew as $k => $v) {
+            $this->settings[$k] = $v;
+        }
+        // Set background image from filename
+        if (!empty($bgEntry['filename'])) {
+            $this->settings['background-image'] = 'backgrounds/' . $bgEntry['filename'];
+        } else {
+            $this->settings['background-image'] = '';
+        }
     }
 
     public function __construct() {
@@ -113,7 +198,18 @@ for ($i = 1; $i <= 8; $i++) {
     $rows[] = isset($_POST['row' . $i]) ? mb_substr(trim($_POST['row' . $i]), 0, 26) : '';
 }
 
+// Load background selection
+$bgId = isset($_POST['bg_id']) ? $_POST['bg_id'] : 'none';
+$backgrounds = json_decode(file_get_contents(__DIR__ . '/backgrounds.json'), true);
+$selectedBg = null;
+foreach ($backgrounds as $bg) {
+    if ($bg['id'] === $bgId) { $selectedBg = $bg; break; }
+}
+
 $l = new LampasSvg();
+if ($selectedBg) {
+    $l->applyBackground($selectedBg);
+}
 $l->setText($rows);
 
 // Generate a safe filename from text content
@@ -136,30 +232,14 @@ $svgFile = 'out/' . $svgOut . '.svg';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lampaš - Rezultat</title>
     <link rel="stylesheet" href="css/lampas.css" type="text/css" media="screen">
-    <style>
-        .result-wrap { text-align: center; margin: 2rem 0; }
-        .result-wrap img { max-width: 100%; height: auto; border: 1px solid #333; }
-        .actions { margin: 1.5rem 0; text-align: center; }
-        .actions a {
-            display: inline-block;
-            padding: 0.5rem 1.5rem;
-            margin: 0 0.5rem;
-            color: #fff3a7;
-            background-color: #404545;
-            text-decoration: none;
-            font-size: 1rem;
-        }
-        .actions a:hover { background-color: #575d5d; }
-        .actions a.disabled { opacity: 0.4; pointer-events: none; }
-        .log { color: #6d6b67; font-size: 0.85rem; margin-top: 1rem; }
-        canvas { display: none; }
-    </style>
+    <style>canvas { display: none; }</style>
 </head>
 <body>
     <div class="actions">
         <a href="index.php">&larr; NAZAD</a>
         <a href="<?= htmlspecialchars($svgFile) ?>" download="<?= htmlspecialchars($svgOut) ?>.svg">PREUZMI SVG</a>
         <a href="#" id="btn-png" class="disabled">PREUZMI PNG</a>
+        <a href="#" id="btn-share" class="disabled">PODELI</a>
     </div>
 
     <div class="result-wrap">
@@ -219,6 +299,54 @@ $svgFile = 'out/' . $svgOut . '.svg';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+    });
+
+    // ----- Share button (Web Share API) -----
+    var btnShare = document.getElementById('btn-share');
+    var pngBlob = null;
+
+    function enableShareButton() {
+        if (!pngDataUrl) return;
+        // Convert data URL to Blob
+        try {
+            var byteString = atob(pngDataUrl.split(',')[1]);
+            var ab = new ArrayBuffer(byteString.length);
+            var ia = new Uint8Array(ab);
+            for (var i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+            pngBlob = new Blob([ab], { type: 'image/png' });
+
+            // Check if sharing files is supported
+            if (navigator.canShare && navigator.canShare({ files: [new File([pngBlob], pngName + '.png', { type: 'image/png' })] })) {
+                btnShare.classList.remove('disabled');
+            } else if (navigator.share) {
+                // Fallback: share without file (just text/url) on desktop
+                btnShare.classList.remove('disabled');
+            }
+        } catch(e) {
+            console.warn('Share setup failed:', e);
+        }
+    }
+
+    // Call after PNG is ready
+    var origOnLoad = svgImg.onload;
+    svgImg.addEventListener('load', function() { enableShareButton(); });
+    // If image already loaded (cached)
+    if (pngDataUrl) enableShareButton();
+
+    btnShare.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (!pngBlob || !navigator.share) return;
+
+        var file = new File([pngBlob], pngName + '.png', { type: 'image/png' });
+        var shareData = { title: 'Lampaš', text: 'Lampaš sa stadiona JNA' };
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            shareData.files = [file];
+        }
+
+        navigator.share(shareData).catch(function(err) {
+            if (err.name !== 'AbortError') console.warn('Share failed:', err);
+        });
     });
 })();
 </script>
