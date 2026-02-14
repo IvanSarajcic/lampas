@@ -523,6 +523,22 @@
         var activeRows = clone.querySelectorAll('.row-active');
         for (var i = 0; i < activeRows.length; i++) activeRows[i].removeAttribute('class');
 
+        // Inline all CSS styles directly onto elements so blob URL rendering works
+        var bgRect = clone.querySelector('.bg');
+        if (bgRect) bgRect.setAttribute('fill', S['bg-color']);
+        var segments = clone.querySelectorAll('.segment');
+        var segOp = (currentBg && currentBg.skew_data && currentBg.skew_data['segment-rect-opacity'] !== undefined)
+            ? currentBg.skew_data['segment-rect-opacity'] : 1;
+        for (var i = 0; i < segments.length; i++) {
+            segments[i].setAttribute('fill', S['segment-rect-bg-color']);
+            segments[i].setAttribute('opacity', segOp);
+        }
+        var lampColor = (currentBg && currentBg['lamp-color']) || S['segment-circle-on-bg-color'];
+        var pxOff = clone.querySelectorAll('.pixel-off');
+        for (var i = 0; i < pxOff.length; i++) pxOff[i].setAttribute('fill', S['segment-circle-off-bg-color']);
+        var pxOn = clone.querySelectorAll('.pixel-on');
+        for (var i = 0; i < pxOn.length; i++) pxOn[i].setAttribute('fill', lampColor);
+
         var vb = svgEl.getAttribute('viewBox').split(' ');
         var w = parseFloat(vb[2]);
         var h = parseFloat(vb[3]);
