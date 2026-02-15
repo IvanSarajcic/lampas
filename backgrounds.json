@@ -16,7 +16,7 @@
   },
   {
     "id": "sporting-1961",
-    "name": "PFC – Sporting (1961)",
+    "name": "PFC - Sporting (1961)",
     "filename": "000026 20.09.1961. pfc sporting 2-0.jpg",
     "skew_data": {
       "content-translate-x": 379,
@@ -32,7 +32,7 @@
   },
   {
     "id": "sarajevo-1967",
-    "name": "PFC – Sarajevo (1967)",
+    "name": "PFC - Sarajevo (1967)",
     "filename": "scan0017 pfc sarajevo 2-1 19.3.1967..jpg",
     "skew_data": {
       "content-translate-x": 77,
@@ -45,5 +45,21 @@
       "segment-rect-opacity": 0
     },
     "lamp-color": "#fefefe"
+  },
+  {
+    "id": "umrlica-1996",
+    "name": "PFC - Cigani - umrlica (1996)",
+    "filename": "10.03.1996. umrlica.jpg",
+    "skew_data": {
+      "content-translate-x": 399,
+      "content-translate-y": 31,
+      "content-scale-x": 0.024,
+      "content-scale-y": 0.0231,
+      "content-skew-x": -1.3,
+      "content-skew-y": 0.6,
+      "content-rotate": 0,
+      "segment-rect-opacity": 0
+    },
+    "lamp-color": "#ffdc00"
   }
 ]

@@ -23,6 +23,7 @@ body {
 #lampas-wrap {
     margin: 0 auto 0;
     cursor: default;
+    position: relative;
     @media screen and (max-width: 768px) {
         width: 100%;
     }
@@ -34,6 +35,38 @@ body {
             width: 100%;
             min-height: auto;
         }
+    }
+}
+
+// --- Screenshot watermark (bottom-right corner) ---
+#screenshot-watermark {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+    pointer-events: none;
+    user-select: none;
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    justify-content: end;
+    opacity: 0.75;
+    width: 100%;
+    img {
+        width: 2.37rem;
+        height: 2.37rem;
+        display: block;
+        background: transparent;
+    }
+    span {
+        font-family: "Courier New", monospace;
+        font-size: 0.55rem;
+        font-weight: bold;
+        color: #fff3a7;
+        opacity: 0.5;
+        background: transparent;
+        white-space: nowrap;
+        letter-spacing: 0.03em;
     }
 }
 
@@ -237,4 +270,127 @@ body {
     font-size: 0.85rem;
     margin-top: 1rem;
     text-align: center;
+}
+
+// --- Dev Tweaker Panel ---
+#dev-tweaker {
+    position: fixed;
+    top: 5.5rem;
+    right: 0.3rem;
+    z-index: 9999;
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 0.3rem 0.4rem;
+    width: 240px;
+    max-height: 90vh;
+    overflow-y: auto;
+    font-family: "Courier New", monospace;
+    color: #ccc;
+    font-size: 0.55rem;
+    #dev-header {
+        font-size: 0.55rem;
+        font-weight: bold;
+        color: #fff3a7;
+        margin-bottom: 0.25rem;
+        kbd {
+            font-size: 0.45rem;
+            color: #888;
+            background: #333;
+            padding: 0.05rem 0.2rem;
+            border-radius: 2px;
+            margin-left: 0.2rem;
+        }
+    }
+    .dev-row {
+        display: flex;
+        align-items: center;
+        gap: 0.15rem;
+        margin-bottom: 0.1rem;
+        label {
+            min-width: 4.2rem;
+            font-size: 0.5rem;
+            color: #999;
+            text-align: right;
+            background: transparent;
+        }
+        .dev-num-input {
+            width: 3.8rem;
+            background: #222;
+            border: 1px solid #555;
+            color: #fff3a7;
+            font-family: "Courier New", monospace;
+            font-size: 0.55rem;
+            padding: 0.1rem 0.15rem;
+            border-radius: 2px;
+            outline: none;
+            text-align: center;
+            &:focus {
+                border-color: #fff3a7;
+            }
+        }
+        .dev-arrow {
+            background: #333;
+            border: 1px solid #555;
+            color: #999;
+            font-size: 0.4rem;
+            width: 1rem;
+            height: 1rem;
+            cursor: pointer;
+            border-radius: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            &:hover {
+                background: #555;
+                color: #fff3a7;
+            }
+            &:active {
+                background: #666;
+            }
+        }
+        .dev-color-input {
+            flex: 1;
+            background: #222;
+            border: 1px solid #555;
+            color: #fff3a7;
+            font-family: "Courier New", monospace;
+            font-size: 0.5rem;
+            padding: 0.1rem 0.15rem;
+            border-radius: 2px;
+            outline: none;
+            &:focus {
+                border-color: #fff3a7;
+            }
+        }
+    }
+    #dev-json-out {
+        background: #1a1a1a;
+        color: #8f8;
+        font-size: 0.45rem;
+        padding: 0.25rem;
+        border-radius: 2px;
+        margin-top: 0.25rem;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 8rem;
+        overflow-y: auto;
+    }
+    #dev-copy-btn {
+        margin-top: 0.15rem;
+        width: 100%;
+        background: #404545;
+        color: #fff3a7;
+        border: none;
+        padding: 0.2rem;
+        font-family: "Courier New", monospace;
+        font-size: 0.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 2px;
+        &:hover {
+            background: #575d5d;
+        }
+    }
 }

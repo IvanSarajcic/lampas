@@ -1,14 +1,14 @@
 {
     "sr": {
-        "page-title": "Лампаш са стадиона ЈНА (1957-2011)",
-        "hint": "Клик на семафор за унос.",
-        "btn-share": "ПОДЕЛИ",
-        "btn-delete": "БРИШИ",
-        "no-bg": "Без фотографије",
-        "slider-malfunction": "квар",
-        "slider-brightness": "сјај",
-        "slider-glow": "аура",
-        "slider-warmth": "боја"
+        "page-title": "Lampaš sa stadiona JNA (1957-2011)",
+        "hint": "Klik na semafor za unos.",
+        "btn-share": "PODELI",
+        "btn-delete": "BRIŠI",
+        "no-bg": "Bez fotografije",
+        "slider-malfunction": "kvar",
+        "slider-brightness": "sjaj",
+        "slider-glow": "aura",
+        "slider-warmth": "boja"
     },
     "en": {
         "page-title": "`Lampaš` scoreboard from the JNA stadium (1957-2011)",

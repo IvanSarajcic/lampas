@@ -41,24 +41,33 @@
     <div id="lampas-controls-top">
         <select id="bg-select"></select>
         <select id="lang-select">
-            <option value="sr">СР</option>
-            <option value="en">EN</option>
+            <option value="sr">SRB</option>
+            <option value="en">ENG</option>
         </select>
     </div>
 </div>
 
 <div id="lampas-wrap">
     <svg id="lampas-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="screenshot-watermark"><span>partizan-histerical.rs/lampas</span><img src="img/misloe.svg" alt=""></div>
 </div>
 
 <input type="text" id="mobile-input" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
 
+<!-- Dev Tweaker Panel (Ctrl+Shift+D) -->
+<div id="dev-tweaker" style="display:none;">
+    <div id="dev-header">skew_data tweaker <kbd>Ctrl+Shift+D</kbd></div>
+    <div id="dev-sliders"></div>
+    <pre id="dev-json-out"></pre>
+    <button id="dev-copy-btn">Copy JSON</button>
+</div>
+
 <div id="lampas-controls-bottom">
     <button type="button" id="btn-delete" title=""><svg class="btn" viewBox="0 -5 32 32" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M22.647,13.24 C23.039,13.63 23.039,14.27 22.647,14.66 C22.257,15.05 21.623,15.05 21.232,14.66 L18.993,12.42 L16.725,14.69 C16.331,15.08 15.692,15.08 15.298,14.69 C14.904,14.29 14.904,13.65 15.298,13.26 L17.566,10.99 L15.327,8.76 C14.936,8.37 14.936,7.73 15.327,7.34 C15.718,6.95 16.352,6.95 16.742,7.34 L18.981,9.58 L21.281,7.28 C21.676,6.89 22.314,6.89 22.708,7.28 C23.103,7.68 23.103,8.31 22.708,8.71 L20.408,11.01 L22.647,13.24 Z M27.996,0 L10.051,0 C9.771,-0.02 9.485,0.07 9.271,0.28 L0.285,10.22 C0.074,10.43 -0.017,10.71 -0.002,10.98 C-0.017,11.26 0.074,11.54 0.285,11.75 L9.271,21.69 C9.467,21.88 9.723,21.98 9.979,21.98 L9.979,22 L27.996,22 C30.207,22 32,20.21 32,18 L32,4 C32,1.79 30.207,0 27.996,0 Z"/></svg></button>
     <div id="sliders-wrap">
-        <div class="slider-row"><span class="slider-tag">kvar</span><input type="range" class="slider" id="malfunction-slider" min="0" max="40" step="1" value="0"><span class="slider-val" id="malfunction-label">0%</span></div>
+        <div class="slider-row"><span class="slider-tag">kvar</span><input type="range" class="slider" id="malfunction-slider" min="0" max="60" step="1" value="9"><span class="slider-val" id="malfunction-label">0.9%</span></div>
         <div class="slider-row"><span class="slider-tag">sjaj</span><input type="range" class="slider" id="brightness-slider" min="50" max="100" step="1" value="100"><span class="slider-val" id="brightness-label">100%</span></div>
-        <div class="slider-row"><span class="slider-tag">aura</span><input type="range" class="slider" id="glow-slider" min="0" max="250" step="2" value="0"><span class="slider-val" id="glow-label">0</span></div>
+        <div class="slider-row"><span class="slider-tag">aura</span><input type="range" class="slider" id="glow-slider" min="50" max="550" step="2" value="0"><span class="slider-val" id="glow-label">0</span></div>
         <div class="slider-row"><span class="slider-tag">boja</span><input type="range" class="slider" id="warmth-slider" min="0" max="100" step="1" value="0"><span class="slider-val" id="warmth-label">0%</span></div>
     </div>
     <button type="button" id="btn-submit" title=""><svg class="btn" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 30c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M35 20c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M35 40c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm0-8c-1.7 0-3 1.3-3 3s1.3 3 3 3 3-1.3 3-3-1.3-3-3-3z"/><path d="M19.007 25.885l12.88 6.44-.895 1.788-12.88-6.44z"/><path d="M30.993 15.885l.894 1.79-12.88 6.438-.894-1.79z"/></svg></button>
@@ -312,7 +321,7 @@
     }
 
     // ----- Render a single character at [row][col] -----
-    var malfunctionRate = 0;
+    var malfunctionRate = 0.009;
     var brightnessVal = 1.0;
     var glowVal = 0;
     var warmthVal = 0;
@@ -788,6 +797,168 @@
     buildSvg(BACKGROUNDS[0]);
     selectRow(0);
     applyLang(currentLang);
+
+    // ===== DEV TWEAKER (Ctrl+Shift+D) =====
+    (function() {
+        var panel = document.getElementById('dev-tweaker');
+        var jsonOut = document.getElementById('dev-json-out');
+        var copyBtn = document.getElementById('dev-copy-btn');
+
+        var fields = [
+            { key: 'content-translate-x', label: 'translate-x', step: 1,     decimals: 0 },
+            { key: 'content-translate-y', label: 'translate-y', step: 1,     decimals: 0 },
+            { key: 'content-scale-x',     label: 'scale-x',     step: 0.001, decimals: 4 },
+            { key: 'content-scale-y',     label: 'scale-y',     step: 0.001, decimals: 4 },
+            { key: 'content-skew-x',      label: 'skew-x',      step: 0.1,   decimals: 1 },
+            { key: 'content-skew-y',      label: 'skew-y',      step: 0.1,   decimals: 1 },
+            { key: 'content-rotate',      label: 'rotate',      step: 0.1,   decimals: 1 },
+            { key: 'segment-rect-opacity',label: 'seg-opacity',  step: 0.05,  decimals: 2 }
+        ];
+
+        var inputs = {};
+        var container = document.getElementById('dev-sliders');
+
+        function fmt(val, dec) {
+            return parseFloat(parseFloat(val).toFixed(dec));
+        }
+
+        fields.forEach(function(f) {
+            var row = document.createElement('div');
+            row.className = 'dev-row';
+            var lbl = document.createElement('label');
+            lbl.textContent = f.label;
+
+            var btnDown = document.createElement('button');
+            btnDown.className = 'dev-arrow';
+            btnDown.textContent = '\u25BC';
+            btnDown.title = '-' + f.step;
+
+            var inp = document.createElement('input');
+            inp.type = 'text';
+            inp.className = 'dev-num-input';
+            inp.value = '0';
+
+            var btnUp = document.createElement('button');
+            btnUp.className = 'dev-arrow';
+            btnUp.textContent = '\u25B2';
+            btnUp.title = '+' + f.step;
+
+            row.appendChild(lbl);
+            row.appendChild(btnDown);
+            row.appendChild(inp);
+            row.appendChild(btnUp);
+            container.appendChild(row);
+            inputs[f.key] = { input: inp, step: f.step, decimals: f.decimals };
+
+            btnUp.addEventListener('click', function() {
+                var v = parseFloat(inp.value) || 0;
+                inp.value = fmt(v + f.step, f.decimals);
+                applyTweaker();
+            });
+            btnDown.addEventListener('click', function() {
+                var v = parseFloat(inp.value) || 0;
+                inp.value = fmt(v - f.step, f.decimals);
+                applyTweaker();
+            });
+            inp.addEventListener('change', function() {
+                inp.value = fmt(inp.value, f.decimals);
+                applyTweaker();
+            });
+            inp.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowUp') { e.preventDefault(); btnUp.click(); }
+                if (e.key === 'ArrowDown') { e.preventDefault(); btnDown.click(); }
+            });
+        });
+
+        // Lamp color input
+        var lampRow = document.createElement('div');
+        lampRow.className = 'dev-row';
+        var lampLbl = document.createElement('label');
+        lampLbl.textContent = 'lamp-color';
+        var lampInp = document.createElement('input');
+        lampInp.type = 'text';
+        lampInp.value = '#cecece';
+        lampInp.className = 'dev-color-input';
+        lampRow.appendChild(lampLbl);
+        lampRow.appendChild(lampInp);
+        container.appendChild(lampRow);
+
+        function loadFromBg() {
+            if (!currentBg) return;
+            var sk = currentBg.skew_data || {};
+            fields.forEach(function(f) {
+                var v = sk[f.key];
+                if (v === undefined) v = (f.key === 'content-scale-x' || f.key === 'content-scale-y') ? 1 : 0;
+                inputs[f.key].input.value = fmt(v, f.decimals);
+            });
+            lampInp.value = currentBg['lamp-color'] || S['segment-circle-on-bg-color'];
+            updateJson();
+        }
+
+        function applyTweaker() {
+            if (!contentGroup) return;
+            var tx = parseFloat(inputs['content-translate-x'].input.value) || 0;
+            var ty = parseFloat(inputs['content-translate-y'].input.value) || 0;
+            var rot = parseFloat(inputs['content-rotate'].input.value) || 0;
+            var sx = parseFloat(inputs['content-scale-x'].input.value) || 1;
+            var sy = parseFloat(inputs['content-scale-y'].input.value) || 1;
+            var skx = parseFloat(inputs['content-skew-x'].input.value) || 0;
+            var sky = parseFloat(inputs['content-skew-y'].input.value) || 0;
+            var segOp = parseFloat(inputs['segment-rect-opacity'].input.value);
+            if (isNaN(segOp)) segOp = 1;
+
+            var tp = [];
+            if (tx !== 0 || ty !== 0) tp.push('translate(' + tx + ',' + ty + ')');
+            if (rot !== 0) tp.push('rotate(' + rot + ')');
+            if (sx !== 1 || sy !== 1) tp.push('scale(' + sx + ',' + sy + ')');
+            if (skx !== 0) tp.push('skewX(' + skx + ')');
+            if (sky !== 0) tp.push('skewY(' + sky + ')');
+            contentGroup.setAttribute('transform', tp.length ? tp.join(' ') : '');
+
+            if (currentBg) {
+                if (!currentBg.skew_data) currentBg.skew_data = {};
+                currentBg.skew_data['segment-rect-opacity'] = segOp;
+                updateSvgStyle();
+            }
+            updateJson();
+        }
+
+        function updateJson() {
+            var obj = {};
+            fields.forEach(function(f) {
+                obj[f.key] = parseFloat(inputs[f.key].input.value) || 0;
+            });
+            var lc = lampInp.value.trim();
+            var out = '"skew_data": ' + JSON.stringify(obj, null, 2) + ',\n"lamp-color": "' + lc + '"';
+            jsonOut.textContent = out;
+        }
+
+        lampInp.addEventListener('input', updateJson);
+
+        copyBtn.addEventListener('click', function() {
+            navigator.clipboard.writeText(jsonOut.textContent).then(function() {
+                copyBtn.textContent = 'Copied!';
+                setTimeout(function() { copyBtn.textContent = 'Copy JSON'; }, 1500);
+            });
+        });
+
+        // Toggle with Ctrl+Shift+D
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                e.preventDefault();
+                var vis = panel.style.display === 'block';
+                panel.style.display = vis ? 'none' : 'block';
+                if (!vis) loadFromBg();
+            }
+        });
+
+        // Reload values when background changes
+        bgSelect.addEventListener('change', function() {
+            setTimeout(function() {
+                if (panel.style.display === 'block') loadFromBg();
+            }, 100);
+        });
+    })();
 
 })();
 </script>
